@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { copy, linkIcon, loader, tick } from '../assets';
+import { useLazyGetSummaryQuery } from '../services/article';
 
 const Demo = () => {
 
@@ -8,8 +9,21 @@ const Demo = () => {
     summary: '',
   });
 
+  // This allows us to know if we have an error or if we are fetching data. 
+  const [getSummary, { error, isFetching }] = useLazyGetSummaryQuery();
+
   const handleSubmit = async (e) => {
-    alert('submitting form');
+    e.preventDefault();
+    
+    const { data } = await getSummary({ articleUrl: article.url }); //we call the API here
+
+    if(data?.summary) {
+      const newArticle = { ...article, summary: data.summary };
+
+      setArticle(newArticle);
+
+      console.log(newArticle);
+    }
   };
 
   return (
