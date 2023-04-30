@@ -9,8 +9,23 @@ const Demo = () => {
     summary: '',
   });
 
+  const [allArticles, setAllArticles] = useState([]); //we will store all the articles here
+
   // This allows us to know if we have an error or if we are fetching data. 
   const [getSummary, { error, isFetching }] = useLazyGetSummaryQuery();
+
+  // Saves articles to local storage
+  useEffect(() => {
+    // localStorage.setItem('allArticles', JSON.stringify(allArticles)); copoilot suggestion
+
+    const articlesFromLocalStorage = JSON.parse(
+      localStorage.getItem('articles') //gets the data back to us
+    )
+
+    if(articlesFromLocalStorage) { //if we have data in local storage, we will set it to the state
+      setAllArticles(articlesFromLocalStorage);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,10 +34,14 @@ const Demo = () => {
 
     if(data?.summary) {
       const newArticle = { ...article, summary: data.summary };
+      const updateAllArticles = [newArticle, ...allArticles]; //we add the new article to the array of all articles
 
       setArticle(newArticle);
+      setAllArticles(updateAllArticles);
 
-      console.log(newArticle);
+      // console.log(newArticle);
+
+      localStorage.setItem('articles', JSON.stringify(updateAllArticles)); //we save the data to local storage. We need to "stringify" it because local storage only accepts strings
     }
   };
 
@@ -59,10 +78,64 @@ const Demo = () => {
         </form>
 
         {/* Browse URL History */}
+        {/* item = individual article. index = index of article */}
+        <div className='flex flex-col gap-1 max-h-60 overflow-y-auto'>
+          {allArticles.map((item, index) => (
+            <div
+              key={`link-${index}`}
+              onClick={() => setArticle(item)} //when we click on the article, we will set the article to the state. Allows us to go back to previous articles.
+              className='link_card'
+            >
+              {/* Copy URL incase we want to go back to it */}
+              <div className='copy_btn'>
+                <img 
+                  src={copy}
+                  alt='copy icon'
+                  className='w-[40%] h-[40%] object-contain'
+                />
+              </div>
 
+              {/* URL */}
+              <p className='flex-1 font-satoshi truncate text-blue-700 font-medium text-sm'>
+                {item.url}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Results */}
+      <div className='flex my-10 max-w-full justify-center items-center'>
+        {isFetching ? (
+          <img 
+            src={loader}
+            alt='loader'
+            className='w-20 h-20 object-contain'
+          />
+        ) : error ? (
+          <p className='font-inter font-bold text-black text-center'>
+            ...well thats not right
+            <br />
+            <span className='font-satoshi font-normal text-gray-700'>
+              {error?.data?.error}
+            </span>
+          </p>
+        ) : (         
+          article.summary && (
+            <div className='flex flex-col gap-3'>
+              <h2 className='font-satoshi font-bold text-xl text-gray-600'>
+                Article <span className='blue_gradient'>Summary</span>
+              </h2>
+
+              <div className='summary_box'>
+                <p className='font-inter font-medium text-sm text-gray-700'>
+                  {article.summary}
+                </p>
+              </div>
+            </div>
+          )
+        )}
+      </div>
     </section>
   )
 }
