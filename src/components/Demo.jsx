@@ -14,6 +14,8 @@ const Demo = () => {
   // This allows us to know if we have an error or if we are fetching data. 
   const [getSummary, { error, isFetching }] = useLazyGetSummaryQuery();
 
+  const [copied, setCopied] = useState(''); //we will store the copied url here
+
   // Saves articles to local storage
   useEffect(() => {
     // localStorage.setItem('allArticles', JSON.stringify(allArticles)); copoilot suggestion
@@ -44,6 +46,13 @@ const Demo = () => {
       localStorage.setItem('articles', JSON.stringify(updateAllArticles)); //we save the data to local storage. We need to "stringify" it because local storage only accepts strings
     }
   };
+
+  // Copy URL to clipboard //
+  const copyToClipboard = (copyUrl) => {
+    setCopied(copyUrl);
+    navigator.clipboard.writeText(copyUrl); //this is what makes the copy to clipboard work
+    setTimeout(() => setCopied(false), 3000); //we set the copied state to empty after 3 seconds
+  }
 
   return (
     <section className='w-full mt-16 max-w-xl'>
@@ -87,9 +96,12 @@ const Demo = () => {
               className='link_card'
             >
               {/* Copy URL incase we want to go back to it */}
-              <div className='copy_btn'>
+              <div 
+                className='copy_btn'
+                onClick={() => copyToClipboard(item.url)}              
+              >
                 <img 
-                  src={copy}
+                  src={copied === item.url ? tick : copy} //if the copied state is equal to the item url, we will show the tick/check-mark icon, otherwise we will show the copy icon
                   alt='copy icon'
                   className='w-[40%] h-[40%] object-contain'
                 />
